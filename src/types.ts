@@ -13,6 +13,8 @@ export type TestDoc = {
 
 
 export interface Tech {
+    name: string;
+
     init: () => Promise<void>;
     clear: () => Promise<void>;
     writeDocs: (docs: TestDoc[]) => Promise<any>;
