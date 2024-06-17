@@ -7,10 +7,13 @@ import { IndexedDBTech } from './tech/indexeddb';
 import { TestBlock } from './components/test-block';
 import { Tech } from './types';
 import { createTestDocs } from './test-data';
+import { WasmSQLiteMainThread, WASQLiteMemory } from './tech/wasm-sqlite';
 
 
 const techs: Tech[] = [
-    new IndexedDBTech()
+    new IndexedDBTech(),
+    new WasmSQLiteMainThread(),
+    new WASQLiteMemory()
 ]
 
 function App() {

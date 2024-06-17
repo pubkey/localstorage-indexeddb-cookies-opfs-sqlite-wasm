@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     entry: './src/index.tsx',
@@ -29,6 +30,13 @@ module.exports = {
             ],
         }]
     },
+    plugins: [
+        new CopyPlugin({
+            patterns: [
+                { from: "./node_modules/wa-sqlite/dist", to: "wasm" }
+            ],
+        }),
+    ],
     resolve: {
         extensions: ['.ts', '.js', '.tsx']
     },
@@ -42,6 +50,10 @@ module.exports = {
         port: 3000,
         historyApiFallback: {
             index: 'index.html'
-        }
+        },
+        headers: {
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+            'Cross-Origin-Opener-Policy': 'same-origin'
+        },
     }
 };
