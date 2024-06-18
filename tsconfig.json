@@ -5,14 +5,15 @@
         "moduleResolution": "node",
         "inlineSourceMap": true,
         "module": "es6",
-        "target": "es5",
+        "target": "es2022",
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "jsx": "react",
         "lib": [
             "es2015",
-            "dom"
+            "dom",
+            "ESNext"
         ]
     },
     "exclude": [

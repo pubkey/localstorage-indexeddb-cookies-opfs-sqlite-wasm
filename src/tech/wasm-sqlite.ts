@@ -1,10 +1,17 @@
 import { randomString } from 'async-test-util';
 import { Tech, TestDoc } from '../types';
 import sqlite3InitModule, { Database } from '@sqlite.org/sqlite-wasm';
-const STORE_NAME = 'mystore';
+import { batchArray } from 'rxdb/plugins/utils';
+const TABLE_NAME = 'mytable';
 const log = console.log;
 const error = console.error;
 
+/**
+ * Running SQL statements with too many variables
+ * will throw with:
+ * 'SQLITE_ERROR: too many SQL variables'
+ */
+export const SQLITE_VARIABLES_LIMIT = 999;
 
 export class WASQLiteMemory implements Tech {
     public name = 'wa-sqlite-memory';
@@ -16,10 +23,30 @@ export class WASQLiteMemory implements Tech {
     constructor() {
 
     }
-    clear: () => Promise<void>;
-    writeDocs: (docs: TestDoc[]) => Promise<any>;
+    async writeDocs(docs: TestDoc[]): Promise<any> {
+        /**
+         * Doing all writes in a single sql statement could
+         * throw with a 'too many variables' error, so we have to batch the writes.
+         */
+        const variablesPerWriteRow = 5;
+        const writeBatches = batchArray(docs, SQLITE_VARIABLES_LIMIT / variablesPerWriteRow);
+        const writeVariablesBlock = '(' + new Array(variablesPerWriteRow).fill('?').join(', ') + ')';
+
+        for (const batch of writeBatches) {
+            const insertQuery = `INSERT INTO "${TABLE_NAME}" (
+                id,
+                revision,
+                deleted,
+                lastWriteTime,
+                data
+            ) VALUES ${new Array(batch.length).fill(writeVariablesBlock).join(', ')}; `;   
+        }
+
+    }
+
     queryRegex: (regex: RegExp) => Promise<TestDoc[]>;
     queryRegexIndex: (regex: RegExp, minAge: number) => Promise<TestDoc[]>;
+    clear: () => Promise<void>;
 
 
 
@@ -55,6 +82,8 @@ export class WASQLiteMemory implements Tech {
         );
         `);
     }
+
+
 
     async queryIndex(minAge: number): Promise<TestDoc[]> {
         const result = await this.all(`
