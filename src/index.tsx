@@ -7,18 +7,19 @@ import { IndexedDBTech } from './tech/indexeddb';
 import { TestBlock } from './components/test-block';
 import { Tech } from './types';
 import { createTestDocs } from './test-data';
-import { WasmSQLiteMainThread, WASQLiteMemory } from './tech/wasm-sqlite';
+import { WasmSQLiteMainThread, WASQLiteIndexedDB, WASQLiteMemory } from './tech/wasm-sqlite';
 
 
 const techs: Tech[] = [
     new IndexedDBTech(),
     new WasmSQLiteMainThread(),
-    new WASQLiteMemory()
+    new WASQLiteMemory(),
+    new WASQLiteIndexedDB()
 ]
 
 function App() {
     const [writeAmount, setWriteAmount] = React.useState(10000);
-    const [regex, setRegex] = React.useState(/foobar/);
+    const [regex, setRegex] = React.useState('foobar');
     const [minAge, setMinAge] = React.useState(50);
 
 

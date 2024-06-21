@@ -40,7 +40,7 @@ export class IndexedDBTech implements Tech {
         });
     }
 
-    async queryRegex(regex: RegExp): Promise<TestDoc[]> {
+    async queryRegex(regex: string): Promise<TestDoc[]> {
         const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
         const store = tx.objectStore(STORE_NAME);
         let result: TestDoc[] = [];
@@ -49,7 +49,7 @@ export class IndexedDBTech implements Tech {
                 const cursor = event.target.result;
                 if (cursor) {
                     const doc: TestDoc = cursor.value;
-                    if (doc.longtext.match(regex)) {
+                    if (doc.longtext.includes(regex)) {
                         result.push(doc);
                     }
                     cursor.continue();
@@ -80,7 +80,7 @@ export class IndexedDBTech implements Tech {
         });
         return result;
     }
-    async queryRegexIndex(regex: RegExp, minAge: number): Promise<TestDoc[]> {
+    async queryRegexIndex(regex: string, minAge: number): Promise<TestDoc[]> {
         const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
         const store = tx.objectStore(STORE_NAME);
         const index = store.index('age');
@@ -91,7 +91,7 @@ export class IndexedDBTech implements Tech {
                 const cursor = event.target.result;
                 if (cursor) {
                     const doc: TestDoc = cursor.value;
-                    if (doc.longtext.match(regex)) {
+                    if (doc.longtext.includes(regex)) {
                         result.push(doc);
                     }
                     cursor.continue();

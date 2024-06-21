@@ -5,7 +5,7 @@ export function createTestDoc(): TestDoc {
     return {
         id: randomString(12),
         age: randomNumber(0, 100),
-        list: [],
+        list: new Array(5).fill(0).map(() => ({ value: randomString(10) })),
         longtext: randomString(1000),
         nes: {
             ted: randomNumber(0, 100)

@@ -18,7 +18,7 @@ export interface Tech {
     init: () => Promise<void>;
     clear: () => Promise<void>;
     writeDocs: (docs: TestDoc[]) => Promise<any>;
-    queryRegex: (regex: RegExp) => Promise<TestDoc[]>;
+    queryRegex: (regex: string) => Promise<TestDoc[]>;
     queryIndex: (minAge: number) => Promise<TestDoc[]>;
-    queryRegexIndex: (regex: RegExp, minAge: number) => Promise<TestDoc[]>;
+    queryRegexIndex: (regex: string, minAge: number) => Promise<TestDoc[]>;
 };
