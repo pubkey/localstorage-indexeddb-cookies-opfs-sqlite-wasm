@@ -13,20 +13,20 @@
   },
   "author": "pubkey",
   "dependencies": {
-    "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
+    "@sqlite.org/sqlite-wasm": "3.46.0-build2",
     "async-test-util": "2.5.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "rxdb": "15.24.0",
     "ts-loader": "9.5.1",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "wa-sqlite": "^1.0.0",
+    "wa-sqlite": "1.0.0",
     "webpack": "5.92.0",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "5.0.4"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "^12.0.2"
+    "copy-webpack-plugin": "12.0.2"
   }
 }

@@ -2,6 +2,7 @@ import { randomString } from 'async-test-util';
 import { Tech, TestDoc } from '../types';
 import sqlite3InitModule, { Database } from '@sqlite.org/sqlite-wasm';
 import { IDBBatchAtomicVFS } from "wa-sqlite/src/examples/IDBBatchAtomicVFS.js";
+import { OriginPrivateFileSystemVFS } from "wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js";
 import { batchArray } from 'rxdb/plugins/utils';
 const TABLE_NAME = 'mytable';
 const log = console.log;
@@ -13,6 +14,18 @@ const error = console.error;
  * 'SQLITE_ERROR: too many SQL variables'
  */
 export const SQLITE_VARIABLES_LIMIT = 999;
+
+
+const CREATE_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS myTable (
+    id TEXT PRIMARY KEY,
+    age INTEGER,
+    longtext TEXT,
+    nes JSON,
+    list JSON
+);
+`;
+
 
 export class WASQLiteMemory implements Tech {
     public name = 'wa-sqlite-memory';
@@ -38,15 +51,7 @@ export class WASQLiteMemory implements Tech {
         this.sqlite3 = SQLite.Factory(module);
         this.dbNr = await this.sqlite3.open_v2(randomString(10));
 
-        await this.run(`
-        CREATE TABLE myTable (
-            id TEXT PRIMARY KEY,
-            age INTEGER,
-            longtext TEXT,
-            nes JSON,
-            list JSON
-        );
-        `);
+        await this.run(CREATE_TABLE_SQL);
     }
 
     async writeDocs(docs: TestDoc[]): Promise<any> {
@@ -124,14 +129,10 @@ export class WASQLiteIndexedDB extends WASQLiteMemory {
     public name = 'wa-sqlite-indexeddb';
 
     async init() {
-
-        
         // @ts-ignore
         const SQLiteESMFactory = await import('wa-sqlite/dist/wa-sqlite-async.mjs');
         // @ts-ignore
         const SQLite = await import('wa-sqlite');
-
-        const vfs = new IDBBatchAtomicVFS('myDatabase');
 
         const module = await SQLiteESMFactory.default({
             locateFile(file: string) {
@@ -140,17 +141,51 @@ export class WASQLiteIndexedDB extends WASQLiteMemory {
             }
         });
         this.sqlite3 = SQLite.Factory(module);
-        this.dbNr = await this.sqlite3.open_v2(randomString(10), undefined, vfs);
 
-        await this.run(`
-        CREATE TABLE myTable (
-            id TEXT PRIMARY KEY,
-            age INTEGER,
-            longtext TEXT,
-            nes JSON,
-            list JSON
-        );
-        `);
+        const vfs = new IDBBatchAtomicVFS('wa-sqlite-idb');
+
+        console.log('vfs:');
+        console.dir(vfs);
+
+        // @ts-ignore
+        this.sqlite3.vfs_register(vfs, true);
+
+
+        this.dbNr = await this.sqlite3.open_v2(this.name + '.db', undefined, 'wa-sqlite-idb');
+
+        await this.run(CREATE_TABLE_SQL);
+    }
+}
+
+export class WASQLiteOPFS extends WASQLiteMemory {
+    public name = 'wa-sqlite-opfs';
+
+    async init() {
+        // @ts-ignore
+        const SQLiteESMFactory = await import('wa-sqlite/dist/wa-sqlite-async.mjs');
+        // @ts-ignore
+        const SQLite = await import('wa-sqlite');
+
+        const module = await SQLiteESMFactory.default({
+            locateFile(file: string) {
+                console.log('locate file !');
+                return `/wasm/${file}`;
+            }
+        });
+        this.sqlite3 = SQLite.Factory(module);
+
+        const vfs = new OriginPrivateFileSystemVFS('wa-sqlite-opfs');
+
+        console.log('vfs:');
+        console.dir(vfs);
+
+        // @ts-ignore
+        this.sqlite3.vfs_register(vfs, true);
+
+
+        this.dbNr = await this.sqlite3.open_v2(this.name + '.db', undefined, 'wa-sqlite-opfs');
+
+        await this.run(CREATE_TABLE_SQL);
     }
 }
 
@@ -261,15 +296,7 @@ export class WasmSQLiteMainThread implements Tech {
         sqlite3.oo1.OpfsDb
         await new Promise<void>(res => {
             this.db.exec({
-                sql: `
-            CREATE TABLE myTable (
-                id TEXT PRIMARY KEY,
-                age INTEGER,
-                longtext TEXT,
-                nes JSON,
-                list JSON
-            );
-            `,
+                sql: CREATE_TABLE_SQL,
                 returnValue: 'resultRows',
                 resultRows: [],
                 callback: () => {
