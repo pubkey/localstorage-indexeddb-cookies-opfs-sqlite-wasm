@@ -46,7 +46,7 @@ export function TestBlock(props) {
 
         const endTime = performance.now();
         const totalTime = endTime - startTime;
-        console.log('# total time of ' + fnName + ': ' + Math.ceil(totalTime));
+        console.log('#' + tech.name + ' total time of ' + fnName + ': ' + Math.ceil(totalTime));
 
         console.log();
 

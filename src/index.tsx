@@ -3,7 +3,9 @@ import * as React from "react";
 import { ProcessBlockIndicator } from './components/spinner';
 import { createRoot } from 'react-dom/client';
 
-import { IndexedDBTech } from './tech/indexeddb';
+import { IndexedDBCursor, IndexedDBBulk } from './tech/indexeddb';
+import { Localstorage } from './tech/localstorage';
+
 import { TestBlock } from './components/test-block';
 import { Tech } from './types';
 import { createTestDocs } from './test-data';
@@ -13,13 +15,20 @@ import {
     WASQLiteMemory,
     WASQLiteOPFS
 } from './tech/wasm-sqlite';
+import { Cookies } from './tech/cookies';
+import { RxDBDexie } from './tech/rxdb';
 
 
 const techs: Tech[] = [
-    new IndexedDBTech(),
-    new WasmSQLiteMainThread(),
+    new IndexedDBCursor(),
+    new IndexedDBBulk(),
     new WASQLiteMemory(),
     new WASQLiteIndexedDB(),
+    new Localstorage(),
+    new Cookies(),
+    new RxDBDexie()
+
+    // new WasmSQLiteMainThread(),
     // new WASQLiteOPFS() // TODO wait for new wa-sqlite release
 ]
 

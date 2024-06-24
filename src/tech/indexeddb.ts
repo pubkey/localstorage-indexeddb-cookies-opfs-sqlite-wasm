@@ -3,7 +3,7 @@ import { Tech, TestDoc } from '../types';
 
 const STORE_NAME = 'mystore';
 
-export class IndexedDBTech implements Tech {
+export class IndexedDBCursor implements Tech {
     public name = 'indexeddb-cursor';
     dbName: string = randomString(10);
     db: IDBDatabase;
@@ -100,6 +100,107 @@ export class IndexedDBTech implements Tech {
                 }
             };
         });
+        return result;
+    }
+
+
+    async clear() {
+        const request = indexedDB.deleteDatabase(this.dbName);
+        await new Promise<void>(res => {
+            request.onsuccess = (event: any) => {
+                res();
+            };
+        });
+    }
+};
+
+
+
+export class IndexedDBBulk implements Tech {
+    public name = 'indexeddb-bulk';
+    dbName: string = randomString(10);
+    db: IDBDatabase;
+
+    constructor() {
+
+    }
+
+    async init() {
+        console.log(' i 1');
+        const request = indexedDB.open(this.dbName);
+        await new Promise<void>(res => {
+            request.onupgradeneeded = async (event: any) => {
+                this.db = event.target.result;
+                const objectStore = this.db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                objectStore.createIndex("age", "age", { unique: false });
+                objectStore.transaction.oncomplete = (e) => {
+                    res();
+                };
+            };
+        });
+    }
+
+    async writeDocs(docs: TestDoc[]) {
+        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        for (let index = 0; index < docs.length; index++) {
+            const doc = docs[index];
+            store.add(doc);
+        }
+        await new Promise<void>((res, rej) => {
+            tx.oncomplete = () => res();
+            tx.onerror = (err) => rej(err);
+        });
+    }
+
+    async queryRegex(regex: string): Promise<TestDoc[]> {
+        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+
+        const allDocs = await new Promise<TestDoc[]>((res, err) => {
+            const request = store.getAll();
+            request.onsuccess = () => res(request.result);
+            request.onerror = () => err();
+        });
+        const result: TestDoc[] = [];
+        for (let index = 0; index < allDocs.length; index++) {
+            const doc = allDocs[index];
+            if (doc.longtext.includes(regex)) {
+                result.push(doc);
+            }
+        }
+        return result;
+    }
+    async queryIndex(minAge: number): Promise<TestDoc[]> {
+        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('age');
+        const range = IDBKeyRange.lowerBound(minAge);
+        const allDocs = await new Promise<TestDoc[]>((res, err) => {
+            const request = index.getAll(range);
+            request.onsuccess = () => res(request.result);
+            request.onerror = () => err();
+        });
+        return allDocs;
+    }
+    async queryRegexIndex(regex: string, minAge: number): Promise<TestDoc[]> {
+        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('age');
+        const range = IDBKeyRange.lowerBound(minAge);
+
+        const allDocs = await new Promise<TestDoc[]>((res, err) => {
+            const request = index.getAll(range);
+            request.onsuccess = () => res(request.result);
+            request.onerror = () => err();
+        });
+        const result: TestDoc[] = [];
+        for (let index = 0; index < allDocs.length; index++) {
+            const doc = allDocs[index];
+            if (doc.longtext.includes(regex)) {
+                result.push(doc);
+            }
+        }
         return result;
     }
 
