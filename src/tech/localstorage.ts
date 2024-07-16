@@ -31,8 +31,6 @@ export class Localstorage implements Tech {
 
         for (let index = 0; index < batches.length; index++) {
             const batch = batches[index];
-            console.log('batch:;');
-            console.dir(batch);
             localStorage.setItem('docs_' + index, JSON.stringify(batch));
         }
     }

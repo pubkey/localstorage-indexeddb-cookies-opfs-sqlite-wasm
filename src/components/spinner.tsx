@@ -25,7 +25,11 @@ export function ProcessBlockIndicator() {
 
     return <div style={{
         borderStyle: 'solid',
-        padding: 20
+        padding: 20,
+        position: 'fixed',
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'white'
     }}>
         <span>This spinner is propelled by JavaScript and visually indicates when the JavaScript process is blocked:</span>
         <br />

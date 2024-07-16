@@ -33,7 +33,8 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: "./node_modules/wa-sqlite/dist", to: "wasm" }
+                { from: "./node_modules/wa-sqlite/dist", to: "wasm" },
+                { from: "./node_modules/rxdb-premium/dist/workers", to: "rxdb" }
             ],
         }),
     ],

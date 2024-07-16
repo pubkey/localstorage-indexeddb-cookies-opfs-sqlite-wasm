@@ -1,11 +1,9 @@
-import { randomString } from 'async-test-util';
 import { Tech, TestDoc } from '../types';
 
 const STORE_NAME = 'mystore';
 
 export class IndexedDBCursor implements Tech {
     public name = 'indexeddb-cursor';
-    dbName: string = randomString(10);
     db: IDBDatabase;
 
     constructor() {
@@ -13,10 +11,15 @@ export class IndexedDBCursor implements Tech {
     }
 
     async init() {
-        console.log(' i 1');
-        const request = indexedDB.open(this.dbName);
-        await new Promise<void>(res => {
+        const request = indexedDB.open(this.name);
+        await new Promise<void>((res, rej) => {
+            request.onsuccess = (event: any) => {
+                this.db = event.target.result;
+                res();
+            };
+            request.onerror = (err) => rej(err);
             request.onupgradeneeded = async (event: any) => {
+                console.log('upgrade needed');
                 this.db = event.target.result;
                 const objectStore = this.db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                 objectStore.createIndex("age", "age", { unique: false });
@@ -105,7 +108,7 @@ export class IndexedDBCursor implements Tech {
 
 
     async clear() {
-        const request = indexedDB.deleteDatabase(this.dbName);
+        const request = indexedDB.deleteDatabase(this.name);
         await new Promise<void>(res => {
             request.onsuccess = (event: any) => {
                 res();
@@ -116,43 +119,8 @@ export class IndexedDBCursor implements Tech {
 
 
 
-export class IndexedDBBulk implements Tech {
+export class IndexedDBBulk extends IndexedDBCursor {
     public name = 'indexeddb-bulk';
-    dbName: string = randomString(10);
-    db: IDBDatabase;
-
-    constructor() {
-
-    }
-
-    async init() {
-        console.log(' i 1');
-        const request = indexedDB.open(this.dbName);
-        await new Promise<void>(res => {
-            request.onupgradeneeded = async (event: any) => {
-                this.db = event.target.result;
-                const objectStore = this.db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                objectStore.createIndex("age", "age", { unique: false });
-                objectStore.transaction.oncomplete = (e) => {
-                    res();
-                };
-            };
-        });
-    }
-
-    async writeDocs(docs: TestDoc[]) {
-        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        for (let index = 0; index < docs.length; index++) {
-            const doc = docs[index];
-            store.add(doc);
-        }
-        await new Promise<void>((res, rej) => {
-            tx.oncomplete = () => res();
-            tx.onerror = (err) => rej(err);
-        });
-    }
-
     async queryRegex(regex: string): Promise<TestDoc[]> {
         const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
         const store = tx.objectStore(STORE_NAME);
@@ -202,15 +170,5 @@ export class IndexedDBBulk implements Tech {
             }
         }
         return result;
-    }
-
-
-    async clear() {
-        const request = indexedDB.deleteDatabase(this.dbName);
-        await new Promise<void>(res => {
-            request.onsuccess = (event: any) => {
-                res();
-            };
-        });
     }
 };

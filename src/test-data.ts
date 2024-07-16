@@ -1,6 +1,7 @@
 import { randomNumber, randomString, wait } from 'async-test-util';
 import { TestDoc } from './types';
 import { RxJsonSchema } from 'rxdb';
+import { LOREM_IPSUM } from './lorem';
 
 
 export const TEST_DOC_SCHEMA: RxJsonSchema<TestDoc> = {
@@ -45,15 +46,22 @@ export const TEST_DOC_SCHEMA: RxJsonSchema<TestDoc> = {
     additionalProperties: false,
     indexes: [
         'age'
-    ]
+    ],
+    sharding: {
+        mode: 'collection',
+        shards: 20
+    }
 } as const;
+
+
+const longtext = LOREM_IPSUM.slice(0, TEST_DOC_SCHEMA.properties.longtext.maxLength);
 
 export function createTestDoc(): TestDoc {
     return {
         id: randomString(TEST_DOC_SCHEMA.properties.id.maxLength),
         age: randomNumber(TEST_DOC_SCHEMA.properties.age.minimum, TEST_DOC_SCHEMA.properties.age.maximum),
         list: new Array(5).fill(0).map(() => ({ value: randomString(10) })),
-        longtext: randomString(TEST_DOC_SCHEMA.properties.longtext.maxLength),
+        longtext,
         nes: {
             ted: randomNumber(0, 100)
         }
@@ -70,7 +78,7 @@ export async function createTestDocs(amount: number): Promise<TestDoc[]> {
     while (t > 0) {
         t--;
         ret.push(createTestDoc());
-        if (t % 5000 === 0) {
+        if (t % 100000 === 0) {
             console.log('wait');
             await wait(0);
         }

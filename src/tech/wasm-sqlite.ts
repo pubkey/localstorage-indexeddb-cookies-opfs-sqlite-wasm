@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS myTable (
     list JSON
 );
 `;
+const CREATE_INDEX_SQL = `
+CREATE INDEX IF NOT EXISTS index_age 
+ON myTable(age);
+`;
 
 
 export class WASQLiteMemory implements Tech {
@@ -52,6 +56,7 @@ export class WASQLiteMemory implements Tech {
         this.dbNr = await this.sqlite3.open_v2(randomString(10));
 
         await this.run(CREATE_TABLE_SQL);
+        await this.run(CREATE_INDEX_SQL);
     }
 
     async writeDocs(docs: TestDoc[]): Promise<any> {
@@ -154,6 +159,7 @@ export class WASQLiteIndexedDB extends WASQLiteMemory {
         this.dbNr = await this.sqlite3.open_v2(this.name + '.db', undefined, 'wa-sqlite-idb');
 
         await this.run(CREATE_TABLE_SQL);
+        await this.run(CREATE_INDEX_SQL);
     }
 }
 
@@ -186,6 +192,7 @@ export class WASQLiteOPFS extends WASQLiteMemory {
         this.dbNr = await this.sqlite3.open_v2(this.name + '.db', undefined, 'wa-sqlite-opfs');
 
         await this.run(CREATE_TABLE_SQL);
+        await this.run(CREATE_INDEX_SQL);
     }
 }
 
@@ -268,66 +275,67 @@ export class WasmSQLiteWorker implements Tech {
 /**
  * @link https://github.com/sqlite/sqlite-wasm?tab=readme-ov-file#in-the-main-thread-without-opfs
  * @link https://developer.chrome.com/blog/sqlite-wasm-in-the-browser-backed-by-the-origin-private-file-system
- */
-export class WasmSQLiteMainThread implements Tech {
-    public name = 'wasm-sqlite-main-thread';
-    dbName: string = randomString(10);
-    db: Database;
+//  */
+// export class WasmSQLiteMainThread implements Tech {
+//     public name = 'wasm-sqlite-main-thread';
+//     dbName: string = randomString(10);
+//     db: Database;
 
-    constructor() {
+//     constructor() {
 
-    }
-    clear: () => Promise<void>;
-    writeDocs: (docs: TestDoc[]) => Promise<any>;
-    queryRegex: (regex: string) => Promise<TestDoc[]>;
-    queryRegexIndex: (regex: string, minAge: number) => Promise<TestDoc[]>;
+//     }
+//     clear: () => Promise<void>;
+//     writeDocs: (docs: TestDoc[]) => Promise<any>;
+//     queryRegex: (regex: string) => Promise<TestDoc[]>;
+//     queryRegexIndex: (regex: string, minAge: number) => Promise<TestDoc[]>;
 
 
-    async init() {
-        console.log('i1');
-        const sqlite3 = await sqlite3InitModule({
-            print: log,
-            printErr: error,
-        });
-        console.log('Running SQLite3 version', sqlite3.version.libVersion);
-        console.log('i2');
-        this.db = new sqlite3.oo1.DB('/mydb.sqlite3', 'ct');
-        console.log('i3');
-        sqlite3.oo1.OpfsDb
-        await new Promise<void>(res => {
-            this.db.exec({
-                sql: CREATE_TABLE_SQL,
-                returnValue: 'resultRows',
-                resultRows: [],
-                callback: () => {
-                    console.log('Create table');
-                    res();
-                }
-            });
-        });
-        console.log('i4');
-    }
+//     async init() {
+//         console.log('i1');
+//         const sqlite3 = await sqlite3InitModule({
+//             print: log,
+//             printErr: error,
+//         });
+//         console.log('Running SQLite3 version', sqlite3.version.libVersion);
+//         console.log('i2');
+//         this.db = new sqlite3.oo1.DB('/mydb.sqlite3', 'ct');
+//         console.log('i3');
+//         sqlite3.oo1.OpfsDb
+//         await new Promise<void>(res => {
+//             this.db.exec({
+//                 sql: CREATE_TABLE_SQL,
+//                 returnValue: 'resultRows',
+//                 resultRows: [],
+//                 callback: () => {
+//                     console.log('Create table');
+//                     res();
+//                 }
+//             });
+//         });
+//         await this.run(CREATE_INDEX_SQL);
+//         console.log('i4');
+//     }
 
-    async queryIndex(minAge: number): Promise<TestDoc[]> {
-        const result = await new Promise<any>(res => {
-            this.db.exec(
-                {
-                    sql: `
-                       SELECT * FROM myTable WHERE age>=${minAge}
-                    `,
-                    callback: (x) => {
-                        console.log('callback:');
-                        console.dir(x);
-                        res(x);
-                    },
-                    rowMode: 'object'
-                });
-        });
-        console.log('result:');
-        console.dir(result);
-        return result;
-    }
-}
+//     async queryIndex(minAge: number): Promise<TestDoc[]> {
+//         const result = await new Promise<any>(res => {
+//             this.db.exec(
+//                 {
+//                     sql: `
+//                        SELECT * FROM myTable WHERE age>=${minAge}
+//                     `,
+//                     callback: (x) => {
+//                         console.log('callback:');
+//                         console.dir(x);
+//                         res(x);
+//                     },
+//                     rowMode: 'object'
+//                 });
+//         });
+//         console.log('result:');
+//         console.dir(result);
+//         return result;
+//     }
+// }
 function sqlite3Worker1Promiser(arg0: { onready: () => void; }) {
     throw new Error('Function not implemented.');
 }
