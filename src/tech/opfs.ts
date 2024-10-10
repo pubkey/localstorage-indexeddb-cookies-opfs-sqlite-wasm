@@ -101,11 +101,10 @@ export class OPFSWebWorker implements Tech {
     worker: Worker;
 
     async init(): Promise<void> {
-        // @ts-ignore
-        this.worker = new Worker('./worker/opfs.worker.js', import.meta.url);
+        this.worker = new Worker('./workers/opfs.worker.js');
 
         // wait for first message so that we know the worker is spawned up
-        return new Promise(res => {
+        await new Promise(res => {
             const listener = (ev: MessageEvent<WorkerMessage>) => {
                 const result = ev.data;
                 if (result.id === 'first') {
@@ -115,6 +114,7 @@ export class OPFSWebWorker implements Tech {
             }
             this.worker.addEventListener('message', listener);
         });
+        await this.callWorker('init', []);
     }
 
     async callWorker(functionName: keyof Tech, params: any[]): Promise<any> {

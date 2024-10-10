@@ -7,7 +7,8 @@
     "lint": "tslint --project .",
     "start": "webpack-dev-server --config webpack.dev.js",
     "serve": "ws -p 8888 -d dist/",
-    "build": "webpack --config webpack.prod.js && cp ./index.html ./dist/index.html",
+    "build:worker": "rm -rf ./dist/workers/ && mkdir -p ./dist/workers/ && webpack --config webpack.worker.js",
+    "build": "webpack --config webpack.prod.js && npm run build:worker && cp ./public/index.html ./dist/index.html",
     "build-tsc": "rm -r ./dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
