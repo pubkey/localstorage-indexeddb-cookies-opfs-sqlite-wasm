@@ -35,6 +35,19 @@ export function TestBlock(props) {
                 console.log('writing ' + writeDocsAmount + ' docs...');
                 await tech.writeDocs(await testData);
                 break;
+            case 'latencyOfSmallWrites':
+                const amount = 1000;
+                const latencyDocs = await createTestDocs(amount);
+                console.log('writing ' + amount + ' docs...');
+                const start = performance.now();
+                for (let i = 0; i < latencyDocs.length; i++) {
+                    const doc = latencyDocs[i];
+                    await tech.writeDocs([doc]);
+                }
+                const total = performance.now() - start;
+                console.log('latencyOfSmallWrites inner time: ' + total);
+                break;
+
             case 'insert1Mil':
                 console.log('insert1Mil docs...');
                 const batchSize = writeDocsAmount;
@@ -101,6 +114,7 @@ export function TestBlock(props) {
         <h5>{tech.name}</h5>
         <button onClick={() => runFn('init')}>Init</button>
         <button onClick={() => runFn('writeDocs')} disabled={!init}>writeDocs</button>
+        <button onClick={() => runFn('latencyOfSmallWrites')} disabled={!init}>latencyOfSmallWrites</button>
         <button onClick={() => runFn('insert1Mil')} disabled={!init}>insert1Mil</button>
         <button onClick={() => runFn('queryRegex')} disabled={!init}>queryRegex</button>
         <button onClick={() => runFn('queryIndex')} disabled={!init}>queryIndex</button>
