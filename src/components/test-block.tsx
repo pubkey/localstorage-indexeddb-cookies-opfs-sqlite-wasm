@@ -19,7 +19,16 @@ export function TestBlock(props) {
         switch (fnName) {
             case 'init':
                 await tech.init();
-                await tech.queryIndex(10000);
+                await tech.writeDocs([{
+                    age: 1,
+                    id: 'init',
+                    list: [],
+                    longtext: '',
+                    nes: {
+                        ted: 1
+                    }
+                }]);
+                // await tech.queryIndex(10000);
                 setInit(true);
                 break;
             case 'writeDocs':

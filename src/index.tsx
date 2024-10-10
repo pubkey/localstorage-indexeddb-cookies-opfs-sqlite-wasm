@@ -14,8 +14,7 @@ import { Tech } from './types';
 import { createTestDocs } from './test-data';
 import {
     WASQLiteIndexedDB,
-    WASQLiteMemory,
-    WASQLiteOPFS
+    WASQLiteMemory
 } from './tech/wasm-sqlite';
 import { Cookies } from './tech/cookies';
 import {
@@ -31,9 +30,11 @@ import {
     RxDBIndexedDBMemoryMappedShardingWorkerDb32,
     RxDBIndexedDBMemoryMappedShardingWorkerDb48,
     RxDBIndexedDBMemoryMappedShardingWorkerDb48MetaOptimized
-
 } from './tech/rxdb';
-import { OPFSMainThread } from './tech/opfs';
+import {
+    OPFSMainThread,
+    OPFSWebWorker
+} from './tech/opfs';
 
 
 const techs: Tech[] = [
@@ -43,6 +44,8 @@ const techs: Tech[] = [
     new WASQLiteIndexedDB(),
     new Localstorage(),
     new Cookies(),
+    new OPFSMainThread(),
+    new OPFSWebWorker(),
     new RxDBDexie(),
     new RxDBIndexedDB(),
     new RxDBIndexedDBWorker(),
@@ -56,7 +59,6 @@ const techs: Tech[] = [
     new RxDBIndexedDBMemoryMappedShardingWorkerDb48(),
     new RxDBIndexedDBMemoryMappedShardingWorkerDb48MetaOptimized(),
 
-    new OPFSMainThread()
 
     // new WasmSQLiteMainThread(),
     // new WASQLiteOPFS() // TODO wait for new wa-sqlite release

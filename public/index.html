@@ -4,15 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Localstorage vs. IndexedDB vs. Cookies vs. OPFS vs. Wasm-SQLite</title>
-    <link rel="preload" href="/rxdb/memory-mapped-indexeddb.worker.js" as="script" type="text/javascript" as="worker">
-    <link rel="preload" href="/rxdb/indexeddb.worker.js" as="script" type="text/javascript" as="worker">
-    <link rel="preload" href="/wasm/wa-sqlite-async.wasm" as="script" type="application/wasm">
+    <link
+        rel="preload"
+        href="/rxdb/memory-mapped-indexeddb.worker.js"
+        as="script"
+        type="text/javascript"
+        as="worker"
+    />
+    <link
+        rel="preload"
+        href="/rxdb/indexeddb.worker.js"
+        as="script"
+        type="text/javascript"
+        as="worker"
+    />
+    <!-- <link
+        rel="preload"
+        href="/worker/opfs.worker.js"
+        as="script"
+        type="text/javascript"
+        as="worker"
+    > -->
+    <link
+        rel="preload"
+        href="/wasm/wa-sqlite-async.wasm"
+        as="script"
+        type="application/wasm"
+    />
 </head>
 
 <body>
     <div id="app"></div>
     <script src="bundle.js"></script>
-    
 </body>
 
 </html>

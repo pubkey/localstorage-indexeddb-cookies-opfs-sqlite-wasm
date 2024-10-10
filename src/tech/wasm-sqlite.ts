@@ -37,9 +37,7 @@ export class WASQLiteMemory implements Tech {
     dbNr: number;
     sqlite3: SQLiteAPI;
 
-    constructor() {
-
-    }
+    constructor() { }
 
     async init() {
         // @ts-ignore
