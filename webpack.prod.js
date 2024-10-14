@@ -1,5 +1,5 @@
 const path = require('path');
-
+const CopyPlugin = require("copy-webpack-plugin");
 module.exports = {
     entry: './src/index.tsx',
     module: {
@@ -32,6 +32,14 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.js', '.tsx']
     },
+    plugins: [
+        new CopyPlugin({
+            patterns: [
+                { from: "./node_modules/wa-sqlite/dist", to: "wasm" },
+                { from: "./node_modules/rxdb-premium/dist/workers", to: "rxdb" }
+            ],
+        }),
+    ],
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist')

@@ -1,56 +1,81 @@
 import { randomCouchString } from 'rxdb';
-import { FileSystemSyncAccessHandle, Tech, TestDoc, WorkerMessage } from '../types';
-
+import {
+    FileSystemSyncAccessHandle,
+    Tech,
+    TestDoc,
+    WorkerMessage
+} from '../types';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 export class OPFSMainThread implements Tech {
     public name = 'opfs-main-thread';
-    fileHandle: FileSystemFileHandle;
+    public opfsRoot: FileSystemDirectoryHandle;
 
 
     async init(): Promise<void> {
-        const opfsRoot = await navigator.storage.getDirectory();
-        this.fileHandle = await opfsRoot.getFileHandle(this.name, {
-            create: true,
+        const root = await navigator.storage.getDirectory();
+        this.opfsRoot = await root.getDirectoryHandle(this.name, {
+            create: true
         });
     }
 
 
     async getData(): Promise<TestDoc[]> {
-        const file = await this.fileHandle.getFile();
-        const data = await file.arrayBuffer();
-        if (data.byteLength === 0) {
-            console.log('zero bytes');
-            return [];
-        }
+        throw new Error('not implemented');
+        // const file = await this.fileHandle.getFile();
+        // const data = await file.arrayBuffer();
+        // if (data.byteLength === 0) {
+        //     console.log('zero bytes');
+        //     return [];
+        // }
 
-        let dataString = decoder.decode(data);
-        console.log('dataString:');
-        console.dir(dataString);
-        if (dataString.slice(-1) === ',') {
-            dataString = dataString.substring(0, dataString.length - 1);
-        }
-        const json = JSON.parse(dataString);
-        return json;
+        // let dataString = decoder.decode(data);
+        // if (dataString.slice(-1) === ',') {
+        //     dataString = dataString.substring(0, dataString.length - 1);
+        // }
+        // const json = JSON.parse(dataString);
+        // return json;
     }
 
     async writeDocs(docs: TestDoc[]) {
         if (docs.length === 0) {
             return;
         }
-        const dataString = JSON.stringify(docs) + ',';
-        const dataBuffer = encoder.encode(dataString);
-        const writable = await this.fileHandle.createWritable({ keepExistingData: true });
 
-        const file = await this.fileHandle.getFile();
-        const size = file.size;
-        await writable.write({
-            data: dataBuffer,
-            position: size,
-            type: 'write'
-        });
+        await Promise.all(
+            docs.map(async (doc) => {
+                const fileHandle = await this.opfsRoot.getFileHandle(doc.id, {
+                    create: true,
+                });
+                const writable = await fileHandle.createWritable({ keepExistingData: true });
+                const dataString = JSON.stringify(docs);
+                const dataBuffer = encoder.encode(dataString);
+                await writable.write({
+                    data: dataBuffer,
+                    position: 0,
+                    type: 'write'
+                });
+                writable.close();
+            })
+        );
+    }
+
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        return await Promise.all(
+            ids.map(async (id) => {
+                const fileHandle = await this.opfsRoot.getFileHandle(id, {
+                    create: false,
+                });
+                const file = await fileHandle.getFile();
+                const data = await file.arrayBuffer();
+                const dataString = decoder.decode(data);
+                const json = JSON.parse(dataString);
+                return json;
+            })
+        );
+
     }
 
     async queryRegex(regex: string): Promise<TestDoc[]> {
@@ -89,15 +114,13 @@ export class OPFSMainThread implements Tech {
 
 
     async clear() {
-        const writable = await this.fileHandle.createWritable({ keepExistingData: true });
-        await writable.truncate(0);
+        await (this.opfsRoot as any).remove();
     }
 }
 
 
 export class OPFSWebWorker implements Tech {
     public name = 'opfs-web-worker';
-    fileHandle: FileSystemFileHandle;
     worker: Worker;
 
     async init(): Promise<void> {
@@ -142,6 +165,10 @@ export class OPFSWebWorker implements Tech {
         return this.callWorker('writeDocs', [docs]);
     }
 
+    async findDocs(ids: string[]) {
+        return this.callWorker('findDocs', [ids]);
+    }
+
     async queryRegex(regex: string): Promise<TestDoc[]> {
         return this.callWorker('queryRegex', [regex]);
     }
@@ -154,7 +181,7 @@ export class OPFSWebWorker implements Tech {
 
 
     async clear() {
-        return this.callWorker('writeDocs', []);
+        return this.callWorker('clear', []);
     }
 }
 
@@ -163,45 +190,72 @@ export class OPFSWebWorker implements Tech {
 
 export class OPFSInsideOfWorker implements Tech {
     public name = 'opfs-inside-of-worker';
-    fileHandle: FileSystemFileHandle;
+    public opfsRoot: FileSystemDirectoryHandle;
 
     async init(): Promise<void> {
-        const opfsRoot = await navigator.storage.getDirectory();
-        this.fileHandle = await opfsRoot.getFileHandle(this.name, {
-            create: true,
+        const root = await navigator.storage.getDirectory();
+        this.opfsRoot = await root.getDirectoryHandle(this.name, {
+            create: true
         });
     }
 
     async getData(): Promise<TestDoc[]> {
-        const accessHandle: FileSystemSyncAccessHandle = await (this.fileHandle as any).createSyncAccessHandle();
-        const size = await accessHandle.getSize();
-        const data = new Uint8Array(size);
-        await accessHandle.read(data, {});
-        if (data.byteLength === 0) {
-            console.log('zero bytes');
-            return [];
-        }
-        let dataString = decoder.decode(data);
-        console.log('dataString:');
-        console.dir(dataString);
-        if (dataString.slice(-1) === ',') {
-            dataString = dataString.substring(0, dataString.length - 1);
-        }
-        const json = JSON.parse(dataString);
-        return json;
+        throw new Error('not implemented');
+        // const accessHandle: FileSystemSyncAccessHandle = await (this.fileHandle as any).createSyncAccessHandle();
+        // const size = await accessHandle.getSize();
+        // const data = new Uint8Array(size);
+        // await accessHandle.read(data, {});
+        // if (data.byteLength === 0) {
+        //     console.log('zero bytes');
+        //     return [];
+        // }
+        // let dataString = decoder.decode(data);
+        // console.log('dataString:');
+        // console.dir(dataString);
+        // if (dataString.slice(-1) === ',') {
+        //     dataString = dataString.substring(0, dataString.length - 1);
+        // }
+        // const json = JSON.parse(dataString);
+        // return json;
     }
 
     async writeDocs(docs: TestDoc[]) {
         if (docs.length === 0) {
             return;
         }
-        const dataString = JSON.stringify(docs) + ',';
-        const dataBuffer = encoder.encode(dataString);
-        const accessHandle: FileSystemSyncAccessHandle = await (this.fileHandle as any).createSyncAccessHandle();
-        const size = await accessHandle.getSize();
-        await accessHandle.write(dataBuffer, {
-            at: size
-        });
+
+        await Promise.all(
+            docs.map(async (doc) => {
+                const fileHandle = await this.opfsRoot.getFileHandle(doc.id, {
+                    create: true,
+                });
+                const accessHandle: FileSystemSyncAccessHandle = await (fileHandle as any).createSyncAccessHandle();
+                const dataString = JSON.stringify(doc);
+                const dataBuffer = encoder.encode(dataString);
+                const size = await accessHandle.getSize();
+                await accessHandle.write(dataBuffer, {
+                    at: size
+                });
+                accessHandle.close();
+            })
+        );
+    }
+
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        return await Promise.all(
+            ids.map(async (id) => {
+                const fileHandle = await this.opfsRoot.getFileHandle(id, {
+                    create: false,
+                });
+                const accessHandle: FileSystemSyncAccessHandle = await (fileHandle as any).createSyncAccessHandle();
+                const fileSize = await accessHandle.getSize();
+                const readBuffer = new Uint8Array(fileSize);
+                const readSize = accessHandle.read(readBuffer, { at: 0 });
+                const contentAsString = new TextDecoder().decode(readBuffer);
+                accessHandle.close();
+                return JSON.parse(contentAsString);
+            })
+        );
     }
 
 
@@ -242,8 +296,29 @@ export class OPFSInsideOfWorker implements Tech {
     }
 
     async clear() {
-        const writable = await this.fileHandle.createWritable({ keepExistingData: true });
-        await writable.truncate(0);
+        await (this.opfsRoot as any).remove();
     }
 }
 
+
+
+export async function listDirectoryContents(directoryHandle, depth) {
+    depth = depth || 1;
+    directoryHandle = directoryHandle || await navigator.storage.getDirectory();
+    const entries = await directoryHandle.values();
+
+    for await (const entry of entries) {
+        // Add proper indentation based on the depth
+        const indentation = '    '.repeat(depth);
+
+        if (entry.kind === 'directory') {
+            // If it's a directory, log its name 
+            // and recursively list its contents
+            console.log(`${indentation}${entry.name}/`);
+            await listDirectoryContents(entry, depth + 1);
+        } else {
+            // If it's a file, log its name
+            console.log(`${indentation}${entry.name}`);
+        }
+    }
+}

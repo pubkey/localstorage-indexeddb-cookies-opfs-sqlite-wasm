@@ -66,7 +66,6 @@ export class WASQLiteMemory implements Tech {
         const writeBatches = batchArray(docs, SQLITE_VARIABLES_LIMIT / variablesPerWriteRow);
         const writeVariablesBlock = '(' + new Array(variablesPerWriteRow).fill('?').join(', ') + ')';
 
-
         for (const batch of writeBatches) {
             const insertQuery = `INSERT INTO "${TABLE_NAME}" (
                 id,
@@ -88,6 +87,13 @@ export class WASQLiteMemory implements Tech {
         }
     }
 
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        const query = `SELECT * FROM myTable WHERE id IN (${ids.map(id => '\'' + id + '\'').join(',')})`;
+        const resultRows = await this.all(query);
+        const result = resultRows.map(row => sqlRowToObject(row));
+        return result;
+    }
+
     async run(query, params?) {
         await this.sqlite3.run(this.dbNr, query, params);
     }
@@ -104,7 +110,6 @@ export class WASQLiteMemory implements Tech {
         const result = resultRows.map(row => sqlRowToObject(row));
         return result;
     }
-
 
     async queryRegex(regex: string): Promise<TestDoc[]> {
         const resultRows = await this.all(`
@@ -257,6 +262,10 @@ export class WasmSQLiteWorker implements Tech {
         //         res();
         //     });
         // });
+    }
+
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        throw new Error('TODO');
     }
 
     async queryIndex(minAge: number): Promise<TestDoc[]> {

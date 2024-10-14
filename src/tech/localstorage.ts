@@ -31,8 +31,22 @@ export class Localstorage implements Tech {
 
         for (let index = 0; index < batches.length; index++) {
             const batch = batches[index];
-            localStorage.setItem('docs_' + index, JSON.stringify(batch));
+
+            for (let t = 0; t < batch.length; t++) {
+                const doc = batch[index];
+                localStorage.setItem('doc_' + doc.id, JSON.stringify(doc));
+            }
         }
+    }
+
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        const docs: TestDoc[] = [];
+        for (let index = 0; index < ids.length; index++) {
+            const id = ids[index];
+            const stringData = localStorage.getItem('doc_' + id);
+            docs.push(JSON.parse(stringData));
+        }
+        return docs;
     }
 
     async queryRegex(regex: string): Promise<TestDoc[]> {

@@ -43,6 +43,27 @@ export class IndexedDBCursor implements Tech {
         });
     }
 
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        let result: TestDoc[] = [];
+        await new Promise<void>(res => {
+            for (let index = 0; index < ids.length; index++) {
+                const id = ids[index];
+                const getRequest = store.get(id);
+                getRequest.onsuccess = function (event: any) {
+                    if (event.target.result) {
+                        result.push(event.target.result);
+                    }
+                };
+            }
+            tx.oncomplete = function () {
+                res();
+            };
+        });
+        return result;
+    }
+
     async queryRegex(regex: string): Promise<TestDoc[]> {
         const tx: IDBTransaction = this.db.transaction([STORE_NAME], 'readonly');
         const store = tx.objectStore(STORE_NAME);

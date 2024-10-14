@@ -34,6 +34,18 @@ export class Cookies implements Tech {
         }
     }
 
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        const docs: TestDoc[] = [];
+        const cookiesString = document.cookie;
+
+        for (let index = 0; index < ids.length; index++) {
+            const id = ids[index];
+            const valueString = getCookieValueByName(id, cookiesString);
+            docs.push(JSON.parse(valueString));
+        }
+        return docs;
+    }
+
     async queryRegex(regex: string): Promise<TestDoc[]> {
         const allDocs = this.allDocs();
         const result: TestDoc[] = [];
@@ -89,3 +101,21 @@ export class Cookies implements Tech {
         }
     }
 };
+
+
+/**
+ * This is claimed to be the fastest
+ * way to get a single cookie value by name
+ * @link https://www.regex-tutorial.com/getCookieWithRegex.html
+ */
+export function getCookieValueByName(name: string, documentCookie = document.cookie): string {
+    var match = documentCookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+    return match ? match[2] : "";
+}
+
+
+function getCookieValueByName_slow(name, documentCookie = document.cookie) {
+    const value = `; ${documentCookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}

@@ -17,9 +17,13 @@ postMessage(firstInitMessage);
 
 self.onmessage = async (event: MessageEvent) => {
     const message: WorkerMessage = event.data;
-
     const fn = instance[message.functionName];
-    const result = await fn.bind(instance)(...message.params);
+    const result = await fn.bind(instance)(
+        message.params[0],
+        message.params[1],
+        message.params[2],
+        message.params[3]
+    );
     const answer: WorkerMessage = {
         id: message.id,
         functionName: message.functionName,

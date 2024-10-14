@@ -73,6 +73,11 @@ export class RxDBDexie implements Tech {
         // promiseWait(100).then(() => this.collection.cleanup(0))
     }
 
+    async findDocs(ids: string[]): Promise<TestDoc[]> {
+        const docs = await this.collection.findByIds(ids).exec();
+        return Array.from(docs.values());
+    }
+
     async queryRegex(regex: string): Promise<TestDoc[]> {
         return this.runPlainQuery({
             selector: {

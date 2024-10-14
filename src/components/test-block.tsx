@@ -36,7 +36,7 @@ export function TestBlock(props) {
                 await tech.writeDocs(await testData);
                 break;
             case 'latencyOfSmallWrites':
-                const amount = 1000;
+                const amount = 100;
                 const latencyDocs = await createTestDocs(amount);
                 console.log('writing ' + amount + ' docs...');
                 const start = performance.now();
@@ -45,9 +45,53 @@ export function TestBlock(props) {
                     await tech.writeDocs([doc]);
                 }
                 const total = performance.now() - start;
-                console.log('latencyOfSmallWrites inner time: ' + total);
+                const perWrite = total / amount;
+                console.log('latencyOfSmallWrites inner time perWrite: ' + perWrite);
+                await tech.clear();
                 break;
+            case 'latencyOfSmallReads':
+                const readAmount = 10;
+                const readLatencyDocs = await createTestDocs(readAmount);
+                console.log('writing ' + readAmount + ' docs...');
+                await tech.writeDocs(readLatencyDocs);
+                const ids = readLatencyDocs.map(d => d.id);
+                const startT = performance.now();
+                for (let i = 0; i < ids.length; i++) {
+                    const id = ids[i];
+                    await tech.findDocs([id]);
+                }
+                const totalT = performance.now() - startT;
+                const perWriteT = totalT / readAmount;
+                console.log('latencyOfSmallReads inner time perRead: ' + perWriteT);
+                await tech.clear();
+                break;
+            case 'latencyOfBulkWrites':
+                await (async () => {
+                    const amount = 200;
+                    const latencyDocs = await createTestDocs(amount);
+                    console.log('writing ' + amount + ' docs...');
+                    const start = performance.now();
+                    await tech.writeDocs(latencyDocs);
+                    const total = performance.now() - start;
+                    console.log('latencyOfBulkWrites inner time: ' + total);
+                    await tech.clear();
+                })();
+                break;
+            case 'latencyOfBulkReads':
+                await (async () => {
+                    const amount = 200;
+                    const latencyDocs = await createTestDocs(amount);
+                    console.log('writing ' + amount + ' docs...');
+                    await tech.writeDocs(latencyDocs);
+                    const ids = latencyDocs.map(d => d.id);
+                    const start = performance.now();
+                    const read = await tech.findDocs(ids);
+                    const total = performance.now() - start;
 
+                    console.log('latencyOfBulkReads inner time: ' + total);
+                    await tech.clear();
+                })();
+                break;
             case 'insert1Mil':
                 console.log('insert1Mil docs...');
                 const batchSize = writeDocsAmount;
@@ -115,6 +159,9 @@ export function TestBlock(props) {
         <button onClick={() => runFn('init')}>Init</button>
         <button onClick={() => runFn('writeDocs')} disabled={!init}>writeDocs</button>
         <button onClick={() => runFn('latencyOfSmallWrites')} disabled={!init}>latencyOfSmallWrites</button>
+        <button onClick={() => runFn('latencyOfSmallReads')} disabled={!init}>latencyOfSmallReads</button>
+        <button onClick={() => runFn('latencyOfBulkWrites')} disabled={!init}>latencyOfBulkWrites</button>
+        <button onClick={() => runFn('latencyOfBulkReads')} disabled={!init}>latencyOfBulkReads</button>
         <button onClick={() => runFn('insert1Mil')} disabled={!init}>insert1Mil</button>
         <button onClick={() => runFn('queryRegex')} disabled={!init}>queryRegex</button>
         <button onClick={() => runFn('queryIndex')} disabled={!init}>queryIndex</button>
