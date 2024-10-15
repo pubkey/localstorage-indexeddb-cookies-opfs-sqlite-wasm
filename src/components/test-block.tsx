@@ -21,7 +21,7 @@ export function TestBlock(props) {
                 await tech.init();
                 await tech.writeDocs([{
                     age: 1,
-                    id: 'init',
+                    id: 'init_' + new Date().getTime(),
                     list: [],
                     longtext: '',
                     nes: {
@@ -79,7 +79,7 @@ export function TestBlock(props) {
                 break;
             case 'latencyOfBulkReads':
                 await (async () => {
-                    const amount = 200;
+                    const amount = 100;
                     const latencyDocs = await createTestDocs(amount);
                     console.log('writing ' + amount + ' docs...');
                     await tech.writeDocs(latencyDocs);
@@ -90,6 +90,67 @@ export function TestBlock(props) {
 
                     console.log('latencyOfBulkReads inner time: ' + total);
                     await tech.clear();
+                })();
+                break;
+            case 'bulkinsertknown':
+                await (async () => {
+                    const amount = 100;
+                    const latencyDocs = await createTestDocs(amount);
+                    console.log('writing ' + amount + ' docs...');
+
+                    const docs = latencyDocs.map((d, i) => {
+                        d.id = i + '';
+                        return d;
+                    });
+
+                    const start = performance.now();
+                    await tech.writeDocs(docs);
+                    const total = performance.now() - start;
+
+                    console.log('latencyOfBulkReads inner time: ' + total);
+                })();
+                break;
+            case 'bulkreadknown':
+                await (async () => {
+                    const amount = 100;
+                    const latencyDocs = await createTestDocs(amount);
+                    console.log('writing ' + amount + ' docs...');
+
+                    const docs = latencyDocs.map((d, i) => {
+                        d.id = i + '';
+                        return d;
+                    });
+                    const ids = latencyDocs.map(d => d.id);
+
+                    const start = performance.now();
+                    await tech.findDocs(ids);
+                    const total = performance.now() - start;
+
+                    console.log('latencyOfBulkReads inner time: ' + total);
+                })();
+                break;
+            case 'smallreadknown':
+                await (async () => {
+                    const amount = 100;
+                    const latencyDocs = await createTestDocs(amount);
+                    console.log('writing ' + amount + ' docs...');
+
+                    const docs = latencyDocs.map((d, i) => {
+                        d.id = i + '';
+                        return d;
+                    });
+                    const ids = docs.map(d => d.id);
+
+                    const start = performance.now();
+                    for (let i = 0; i < ids.length; i++) {
+                        const id = ids[i];
+                        await tech.findDocs([id]);
+                    }
+                    const total = performance.now() - start;
+
+                    const perDoc = total / ids.length;
+
+                    console.log('smallreadknown inner time perDoc: ' + perDoc);
                 })();
                 break;
             case 'insert1Mil':
@@ -162,6 +223,9 @@ export function TestBlock(props) {
         <button onClick={() => runFn('latencyOfSmallReads')} disabled={!init}>latencyOfSmallReads</button>
         <button onClick={() => runFn('latencyOfBulkWrites')} disabled={!init}>latencyOfBulkWrites</button>
         <button onClick={() => runFn('latencyOfBulkReads')} disabled={!init}>latencyOfBulkReads</button>
+        <button onClick={() => runFn('bulkinsertknown')} disabled={!init}>bulkinsertknown</button>
+        <button onClick={() => runFn('bulkreadknown')} disabled={!init}>bulkreadknown</button>
+        <button onClick={() => runFn('smallreadknown')} disabled={!init}>smallreadknown</button>
         <button onClick={() => runFn('insert1Mil')} disabled={!init}>insert1Mil</button>
         <button onClick={() => runFn('queryRegex')} disabled={!init}>queryRegex</button>
         <button onClick={() => runFn('queryIndex')} disabled={!init}>queryIndex</button>

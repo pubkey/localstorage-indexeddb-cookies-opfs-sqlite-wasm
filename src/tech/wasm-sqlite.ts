@@ -91,6 +91,9 @@ export class WASQLiteMemory implements Tech {
         const query = `SELECT * FROM myTable WHERE id IN (${ids.map(id => '\'' + id + '\'').join(',')})`;
         const resultRows = await this.all(query);
         const result = resultRows.map(row => sqlRowToObject(row));
+        if (ids.length !== result.length) {
+            throw new Error('not all docs found');
+        }
         return result;
     }
 
